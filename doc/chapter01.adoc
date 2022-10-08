@@ -13,7 +13,7 @@ Martin Keßel <kesselmartin@web.de>
 toc::[]
 
 :includedir: _includes
-:sourcedir: ../src/main/
+:sourcedir: ../src/main
 
 == Application Skeleton
 
