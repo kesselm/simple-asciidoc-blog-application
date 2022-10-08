@@ -95,3 +95,5 @@ fabric.properties
 /target/simple-asciidoc-blog-application-0.0.1-SNAPSHOT.jar
 /target/simple-asciidoc-blog-application-0.0.1-SNAPSHOT.jar.original
 /.idea/vcs.xml
+/target/
+target/
