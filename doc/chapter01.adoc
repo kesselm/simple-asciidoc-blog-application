@@ -1,6 +1,6 @@
 
 = Part 1
-Martin Keßel <kesselmartin@web.de>
+Martin Keßel <info@kessel.site>
 :description: This article describes the first implementation.
 :keywords: spring boot, asciidoctorj, asciidoc, pdf, html
 
