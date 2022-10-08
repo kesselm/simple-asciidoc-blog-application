@@ -24,10 +24,12 @@ toc::[]
 
 === Spring Dependencies
 
+\ifdef::env-github[]
 [source,xml]
 ----
 include::../pom.xml[]
 ----
+endif::[]
 
 === Source Code:
 
