@@ -24,7 +24,7 @@ toc::[]
 
 === Spring Dependencies
 
-link:pom.xml[]
+link:../pom.xml[pom.xml]
 
 === Source Code:
 
