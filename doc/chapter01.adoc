@@ -30,38 +30,23 @@ link:../pom.xml[pom.xml]
 
 ==== Create PostBlog Entity
 
-[source, java]
-----
-include::{sourcedir}/java/de/kessel/elena/entity/PostBlog.java[]
-----
+link:{sourcedir}/java/de/kessel/elena/entity/PostBlog.java[PostBlog.java]
 
 ==== Create PostBlog Repository
 
-[source, java]
-----
-include::{sourcedir}/java/de/kessel/elena/repository/PostBlogRepository.java[]
-----
+link:{sourcedir}/java/de/kessel/elena/repository/PostBlogRepository.java[PostBlogRepository.java]
 
 ==== Create PostBlog Service
 
-[source, java]
-----
-include::{sourcedir}/java/de/kessel/elena/service/PostBlogService.java[]
-----
+link:{sourcedir}/java/de/kessel/elena/service/PostBlogService.java[PostBlogService.java]
 
 ==== Create Example Data
 
-[source, java]
-----
-include::{sourcedir}/java/de/kessel/elena/config/DataInstaller.java[]
-----
+link:{sourcedir}/java/de/kessel/elena/config/DataInstaller.java[DataInstaller.java]
 
 ==== H2 Profile for H2
 
-[source, properties]
-----
-include::{sourcedir}/resources/application-h2.properties[]
-----
+link:{sourcedir}/resources/application-h2.properties[application-h2.properties]
 
 ==== Run Application
 
