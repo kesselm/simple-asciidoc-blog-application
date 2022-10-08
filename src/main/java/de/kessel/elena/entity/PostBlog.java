@@ -24,5 +24,4 @@ public class PostBlog {
 
     protected LocalDate updatedAt;
 
-
 }

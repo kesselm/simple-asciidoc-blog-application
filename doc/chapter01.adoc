@@ -24,29 +24,488 @@ toc::[]
 
 === Spring Dependencies
 
-link:../pom.xml[pom.xml]
+.pom.xml
+[source, xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.4</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>de.kessel</groupId>
+    <artifactId>simple-asciidoc-blog-application</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>ELENA - the simple asciidoc blog.</name>
+    <description>A simple asciidoc blog application in spring boot.</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <jackson.databind.version>2.14.0-rc1</jackson.databind.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.databind.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+----
 
 === Source Code:
 
 ==== Create PostBlog Entity
 
-link:{sourcedir}/java/de/kessel/elena/entity/PostBlog.java[PostBlog.java]
+.PostBlog.java
+[source,java]
+----
+package de.kessel.elena.entity;
+
+
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.persistence.*;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@Entity
+public class PostBlog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
+    protected Integer id;
+
+    @Lob
+    protected String text;
+
+    protected LocalDate createdAt;
+
+    protected LocalDate updatedAt;
+
+}
+
+----
 
 ==== Create PostBlog Repository
 
-link:{sourcedir}/java/de/kessel/elena/repository/PostBlogRepository.java[PostBlogRepository.java]
+.PostBlogRepository.java
+[source, java]
+----
+package de.kessel.elena.repository;
+
+import de.kessel.elena.entity.PostBlog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface PostBlogRepository extends JpaRepository<PostBlog, Integer> {
+}
+----
 
 ==== Create PostBlog Service
 
-link:{sourcedir}/java/de/kessel/elena/service/PostBlogService.java[PostBlogService.java]
+.PostBlogService.java
+[source, java]
+----
+package de.kessel.elena.service;
+
+import de.kessel.elena.entity.PostBlog;
+import de.kessel.elena.repository.PostBlogRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class PostBlogService {
+    private final PostBlogRepository repository;
+
+    public PostBlogService(final PostBlogRepository repository){
+        this.repository = repository;
+    }
+
+    public PostBlog savePostBlog(final PostBlog postBlog){
+        return repository.save(postBlog);
+    }
+
+    public List<PostBlog> savePostBlogs(final List<PostBlog> postBlogs){
+        return repository.saveAll(postBlogs);
+    }
+
+    public List<PostBlog> findPostBlogs(){
+        return repository.findAll();
+    }
+}
+----
 
 ==== Create Example Data
 
-link:{sourcedir}/java/de/kessel/elena/config/DataInstaller.java[DataInstaller.java]
+.DataInstaller.java
+[source,java]
+----
+package de.kessel.elena.config;
+
+import de.kessel.elena.entity.PostBlog;
+import de.kessel.elena.service.PostBlogService;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Component
+public class DataInstaller implements CommandLineRunner {
+
+    private final PostBlogService postBlogService;
+
+    public DataInstaller(final PostBlogService postBlogService) {
+        this.postBlogService = postBlogService;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        List<PostBlog> postBlogs = List.of(
+                createPostBlog(asciidocListen()),
+                createPostBlog(asciidocChecklisten()),
+                createPostBlog(asciidocAufzaehlung()),
+                createPostBlog(asciidocLabeledLists()),
+                createPostBlog(ascdiidocQuotes()),
+                createPostBlog(asciidocBlock()),
+                createPostBlog(asccidocCodeBlocksWithCallouts()),
+                createPostBlog(asciidocTable()),
+                createPostBlog(loreIpsum()),
+                createPostBlog(asciidocMath()),
+                createPostBlog(asciidocSourceCode()),
+                createPostBlog(asciidocUnconstrainedText()),
+                createPostBlog(asciidocHighlightedText()),
+                createPostBlog(asciidocSupscriptedText()),
+                createPostBlog(asciidocQuote()),
+                createPostBlog(ascdiidocQuotes())
+        );
+
+        postBlogService.savePostBlogs(postBlogs);
+    }
+
+    private PostBlog createPostBlog(final String text){
+        PostBlog postBlog = new PostBlog();
+        postBlog.setCreatedAt(LocalDate.now());
+        postBlog.setUpdatedAt(LocalDate.now());
+        postBlog.setText(text);
+        return postBlog;
+    }
+
+    private String asciidocListen() {
+        return """
+                == Listen
+
+                * Element
+                ** nächstes Element
+                * weiteres Element
+                """;
+    }
+
+    private String asciidocChecklisten() {
+        return """
+                == Checklisten
+
+                - [ ] noch nicht erledigt
+                - [*] erledigt
+                """;
+    }
+
+    private String asciidocAufzaehlung() {
+        return """
+                == Aufzählung
+
+                . erstes Element
+                . zweites Element
+                .. erstes Unterelement
+                """;
+    }
+
+    private String asciidocLabeledLists() {
+        return """
+                == Labeled Lists
+
+                Label:: Beschreibung
+                noch ein Label:: eine weitere Beschreibung
+                """;
+    }
+
+    private String asciidocQuote() {
+        return """
+                == Quote
+
+                [quote, Bill Gates, Microsoft]
+                ____
+                640 KB are enough for everyone.
+                ____
+                """;
+    }
+
+    private String asciidocBlock() {
+        return """
+                == Literal Block
+                ....
+                Jetzt wird alles
+                    wie angegeben
+                  - ausgegeben.
+                """;
+    }
+
+    private String asccidocCodeBlocksWithCallouts() {
+        return """
+                == Code Block
+
+                [source,java]
+                ----
+                public class EnterpriseAbstractFactory { <1>
+                     public doSomething(int howLong) {
+                            Thread.sleep(howLong);   <2>
+                     }
+                }
+                ----
+
+                <1> to short
+                <2> busy waiting pleas
+                """;
+    }
+
+    private String asciidocTable() {
+        return """
+                == Table
+
+                [cols="1,1"]
+                |===
+                |Cell in column 1, header row |Cell in column 2, header row
+
+                |Cell in column 1, row 2
+                |Cell in column 2, row 2
+
+                |Cell in column 1, row 3
+                |Cell in column 2, row 3
+
+                |Cell in column 1, row 4
+                |Cell in column 2, row 4
+                |===
+                """;
+    }
+
+    private String loreIpsum() {
+        return """
+                == Lore Ipsum
+
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
+                Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
+                erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing
+                elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
+                est Lorem ipsum dolor sit amet.;
+
+                Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum
+                zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+                Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie
+                consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.
+                Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy
+                nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+                Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.
+                At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
+                sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
+                sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt
+                justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
+                sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.
+                Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
+                gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
+                sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur
+                sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
+                no sea takimata sanctus.
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
+                tet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
+                aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
+                consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
+                gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+                Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent
+                luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat
+                volutpat.
+                """;
+    }
+
+    private String asciidocMath() {
+        return """
+                == Math
+
+                Here is an example, latexmath:[e^{i \\pi} + 1 = 0].
+
+                [latexmath]
+                ++++
+                \\frac{\\partial V}{\\partial t}
+                + \\frac{1}{2} \\sigma^2 S^2 \\frac{\\partial^2 V}{\\partial S^2}
+                + r S \\frac{\\partial V}{\\partial S}
+                - r V = 0
+                ++++
+
+                """;
+    }
+
+    private String asciidocSourceCode() {
+        return """
+                .Optional Title
+                [source,java]
+                ----
+                public void main(String[] args) throws Exception {
+                    System.out.println("Hello World!")
+                }
+                ----
+                """;
+    }
+
+    private String asciidocUnstainedText() {
+        return """
+                It has *strong* significance to me.
+
+                I _cannot_ stress this enough.
+
+                Type `OK` to accept.
+
+                That *_really_* has to go.
+
+                Can't pick one? Let's use them `*_all_*`.
+                """;
+    }
+
+    private String asciidocUnconstrainedText() {
+        return """
+                **C**reate, **R**ead, **U**pdate, and **D**elete (CRUD)
+
+                That's fan__freakin__tastic!
+
+                Don't pass generic ``Object``s to methods that accept ``String``s!
+
+                It was Beatle**__mania__**!
+                """;
+    }
+
+    private String asciidocHighlightedText() {
+        return """
+                Werewolves are allergic to #cinnamon#.
+
+                ##Mark##up refers to text that contains formatting ##mark##s.
+
+                Where did all the [.underline]#cores# go?
+
+                We need [.line-through]#ten# twenty VMs.
+
+                A [.myrole]#custom role# must be fulfilled by the theme.
+                """;
+    }
+
+    private String asciidocSupscriptedText() {
+        return """
+                  ^super^script phrase
+
+                  ~sub~script phrase
+                """;
+    }
+
+    private String ascdiidocQuotes() {
+        return """
+                 "`double curved quotes`"
+
+                 '`single curved quotes`'
+
+                 Olaf's desk was a mess.
+
+                 A ``std::vector```'s size is the number of items it contains.
+
+                 All of the werewolves`' desks were a mess.
+
+                 Olaf had been with the company since the `'00s.
+                """;
+    }
+}
+----
 
 ==== H2 Profile for H2
 
-link:{sourcedir}/resources/application-h2.properties[application-h2.properties]
+.application-h2.properties
+[source, properties]
+----
+spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=create
+spring.h2.console.enabled=true
+spring.jpa.show-sql=true
+spring.thymeleaf.encoding=utf-8
+spring.mvc.hiddenmethod.filter.enabled=true
+----
 
 ==== Run Application
 
